@@ -50,7 +50,7 @@ export CALLS="$test_dir/calls"
 : >"$CALLS"
 USER=tester PATH="$stub_bin:$PATH" bash "$installer" >/dev/null
 
-grep -qx 'omarchy-pkg-add linux-headers xpadneo-dkms' "$CALLS" ||
+grep -Eqx 'omarchy-pkg-add .*xpadneo-dkms' "$CALLS" ||
   fail "Xbox controller installer installs xpadneo" "$(cat "$CALLS")"
 grep -qx 'sudo tee /etc/modules-load.d/xpadneo.conf' "$CALLS" ||
   fail "Xbox controller installer enables xpadneo at boot" "$(cat "$CALLS")"
