@@ -38,6 +38,9 @@ case "$1" in
   tee)
     cat >/dev/null
     ;;
+  modprobe)
+    [[ ${MODPROBE_FAILS:-0} == 0 ]]
+    ;;
 esac
 STUB
 
@@ -80,6 +83,14 @@ pass "migration restores wired Xbox controller support"
 run_migration "$blacklist"
 [[ ! -s $CALLS ]] || fail "migration no-ops after the blacklist is gone" "$(cat "$CALLS")"
 pass "migration is idempotent"
+
+printf 'blacklist xpad\n' >"$blacklist"
+: >"$CALLS"
+MODPROBE_FAILS=1 OMARCHY_XPAD_BLACKLIST="$blacklist" PATH="$stub_bin:$PATH" \
+  bash -euo pipefail "$migration" >/dev/null ||
+  fail "migration finishes when the running kernel cannot load xpad" "$(cat "$CALLS")"
+[[ ! -e $blacklist ]] || fail "migration removes the blacklist when xpad cannot load yet"
+pass "migration leaves loading xpad to the next boot when the running kernel cannot"
 
 printf 'blacklist xpad\noptions xpad auto_poweroff=1\n' >"$blacklist"
 run_migration "$blacklist"
